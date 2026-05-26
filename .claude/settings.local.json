@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git --version)",
+      "Bash(python3 -c \"import sqlite3; print\\('sqlite3 lib version:', sqlite3.sqlite_version\\)\")",
+      "Bash(sqlite3 data/cards.db)",
+      "Bash(curl -sS -A \"deckbuilder-ingest/0.1 \\(personal-project\\)\" https://json.edhrec.com/robots.txt)",
+      "Bash(curl -sS -A 'deckbuilder-ingest/0.1 \\(personal-project\\)' https://json.edhrec.com/pages/commanders/atraxa-praetors-voice.json -o '~/Developer/deckbuilder/data/raw/edhrec/atraxa-praetors-voice.json')",
+      "Bash(python3.13 -c \"import json; d=json.load\\(open\\('/Users/zaheer@paystack.com/Developer/deckbuilder/data/raw/edhrec/atraxa-praetors-voice.json'\\)\\); print\\(list\\(d.keys\\(\\)\\)\\)\")",
+      "Bash(curl -sS -A 'deckbuilder-ingest/0.1 \\(personal-project\\)' -o /tmp/atraxa-infect.json -w 'HTTP %{http_code}  size=%{size_download}\\\\n' https://json.edhrec.com/pages/commanders/atraxa-praetors-voice/infect.json)",
+      "Bash(python3.13 -c ' *)",
+      "Bash(.venv/bin/python ingest/edhrec.py)",
+      "Bash(python3.13)",
+      "Bash(.venv/bin/python -m engine.candidates \"Omo\" --limit 25)",
+      "Bash(.venv/bin/python -m engine.candidates \"Atraxa\" --limit 20)",
+      "Bash(.venv/bin/python -m engine.candidates \"Atraxa\" --theme infect --limit 20)",
+      "Bash(.venv/bin/python -m engine.candidates \"Light-Paws\" --limit 20)",
+      "Bash(.venv/bin/python -m engine.candidates \"Commodore Guff\" --theme some-bogus-archetype --limit 5)",
+      "Bash(.venv/bin/python -m engine.candidates \"Y'shtola\" --limit 20)",
+      "Bash(.venv/bin/python -m engine.candidates \"First Sliver\" --limit 20)",
+      "Bash(.venv/bin/python -m engine.build \"Omo\" --bracket 4)",
+      "Bash(.venv/bin/python -m engine.build \"Krenko\" --bracket 2)",
+      "Bash(.venv/bin/python -m engine.build \"Krenko\" --bracket 4)",
+      "Bash(.venv/bin/python -m engine.build \"Atraxa\" --bracket 4)",
+      "Bash(curl -sS -A 'deckbuilder-ingest/0.1 \\(personal-project\\)' -w 'HTTP %{http_code}\\\\n' https://json.edhrec.com/pages/commanders.json -o /tmp/edhrec-top-commanders.json)",
+      "Read(//tmp/**)",
+      "Bash(curl -sS -A \"deckbuilder-ingest/0.1\" -o /tmp/e1.json -w \"%{http_code}\" \"https://json.edhrec.com/pages/top/commanders.json\")",
+      "Bash(curl -sS -A \"deckbuilder-ingest/0.1\" -o /tmp/e2.json -w \"%{http_code}\" \"https://json.edhrec.com/pages/commanders/year.json\")",
+      "Bash(curl -sS -A \"deckbuilder-ingest/0.1\" -o /tmp/e3.xml -w \"%{http_code}\" \"https://edhrec.com/sitemaps/commanders.xml\")",
+      "Bash(.venv/bin/python ingest/prune.py)"
+    ]
+  }
+}

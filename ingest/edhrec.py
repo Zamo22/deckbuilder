@@ -36,6 +36,10 @@ HEADERS = {"User-Agent": USER_AGENT, "Accept": "application/json"}
 REQUEST_DELAY_SEC = 1.5          # Polite delay AFTER each fresh HTTP request.
 THEME_MIN_DECKS = 100            # Skip themes below this — too thin to trust.
 THEME_MAX_PER_COMMANDER = 10     # Cap top-N themes scraped per commander.
+THEME_TOP_N = 100                # Per theme: store only top-N cards by score.
+                                 # Engine pulls top 250 from theme but cards
+                                 # past rank ~100 are low-synergy noise. Trim
+                                 # at ingest for ~60% storage saving.
 
 
 # ---------- Config / DB helpers ----------
@@ -201,6 +205,14 @@ def insert_commander_cards(
     return len(rows), unmatched
 
 
+def _cardview_score(cv: dict, potential_decks: int) -> float:
+    """Match engine/candidates.py: inclusion_rate + max(0, synergy)."""
+    synergy = cv.get("synergy") or 0.0
+    inclusion = cv.get("inclusion") or cv.get("num_decks") or 0
+    inclusion_rate = (inclusion / potential_decks) if potential_decks else 0.0
+    return inclusion_rate + max(0.0, synergy)
+
+
 def insert_theme_cards(
     conn: sqlite3.Connection,
     commander_oracle_id: str,
@@ -212,9 +224,18 @@ def insert_theme_cards(
     game_changers = {cv["name"] for cv in cardlists.get("gamechangers", [])}
     new_cards = {cv["name"] for cv in cardlists.get("newcards", [])}
 
+    # Keep only the top THEME_TOP_N cards by score per theme — past that
+    # rank synergy is noise and the engine never looks anyway.
+    deduped = dedup_cardviews(cardlists)
+    top_items = sorted(
+        deduped.items(),
+        key=lambda kv: _cardview_score(kv[1], potential_decks),
+        reverse=True,
+    )[:THEME_TOP_N]
+
     rows: list[tuple] = []
     unmatched = 0
-    for name, cv in dedup_cardviews(cardlists).items():
+    for name, cv in top_items:
         oracle_id = resolve_oracle_id(conn, name)
         if oracle_id is None:
             unmatched += 1

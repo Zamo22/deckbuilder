@@ -24,17 +24,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .candidates import Candidate, DB_PATH, build_candidate_pool, resolve_commander
+from .manabase import build_mana_base
 from .roles import Role, classify
 from .slots import SlotBudget, get_budget, get_gc_cap, role_to_budget_count
-
-
-BASIC_LAND_BY_COLOR = {
-    "W": "Plains",
-    "U": "Island",
-    "B": "Swamp",
-    "R": "Mountain",
-    "G": "Forest",
-}
 
 
 @dataclass
@@ -128,24 +120,6 @@ def _take_top_n(
     return picked
 
 
-def _allocate_basics(
-    commander_ci: list[str], total_needed: int
-) -> dict[str, int]:
-    """Distribute basics evenly across the commander's colors. Leftovers
-    spill into the first color(s). Colorless commanders get Wastes."""
-    if total_needed <= 0:
-        return {}
-    if not commander_ci:
-        return {"Wastes": total_needed}
-    per_color, leftover = divmod(total_needed, len(commander_ci))
-    out: dict[str, int] = {}
-    for i, color in enumerate(commander_ci):
-        count = per_color + (1 if i < leftover else 0)
-        if count:
-            out[BASIC_LAND_BY_COLOR[color]] = count
-    return out
-
-
 # ---------- Public API ----------
 
 def build_deck(
@@ -170,44 +144,55 @@ def build_deck(
     by_role = _group_by_role(pool)
     budget = get_budget(bracket)
     taken: set[str] = set()
-
     selections: list[tuple[Role, Candidate]] = []
 
-    # Fill non-land non-payoff roles first
+    # Stage 2: fill non-land slots first. We need them filled before the
+    # mana base so pip counting (in manabase) sees the actual deck.
+    non_land_target = 99 - budget.lands
+
     for role in (Role.RAMP, Role.DRAW, Role.INTERACTION):
         target = role_to_budget_count(budget, role)
         picks = _take_top_n(by_role.get(role, []), target, taken)
         for c in picks:
             selections.append((role, c))
 
-    # Lands: take utility lands from the candidate pool up to budget,
-    # rest is filled with basics below.
-    land_picks = _take_top_n(by_role.get(Role.LAND, []), budget.lands, taken)
-    for c in land_picks:
-        selections.append((Role.LAND, c))
-    basics_needed = budget.lands - len(land_picks)
-
-    # Payoff: fill remaining slots so total non-basic = 99 - basics_needed.
-    # If any earlier role under-filled, payoff makes up the difference.
-    non_basic_target = 99 - basics_needed
-    non_basic_so_far = len(selections)
-    payoff_target = non_basic_target - non_basic_so_far
-    payoff_picks = _take_top_n(by_role.get(Role.PAYOFF, []), payoff_target, taken)
+    # Payoff absorbs the rest of the non-land slots, including any under-fill
+    # from earlier roles (e.g. a thin INTERACTION pool spills into PAYOFF).
+    payoff_target = non_land_target - len(selections)
+    payoff_picks = _take_top_n(
+        by_role.get(Role.PAYOFF, []), payoff_target, taken
+    )
     for c in payoff_picks:
         selections.append((Role.PAYOFF, c))
 
-    # If we STILL haven't hit 99 non-basic cards (pool was thin), pull
-    # additional cards from any role by score.
-    if len(selections) < non_basic_target:
-        leftovers = [c for c in pool if c.oracle_id not in taken]
-        for c in leftovers[: non_basic_target - len(selections)]:
+    # If the entire pool was thin, fall back to any leftover non-land card.
+    if len(selections) < non_land_target:
+        leftovers = [
+            c for c in pool
+            if c.oracle_id not in taken and classify(c) != Role.LAND
+        ]
+        for c in leftovers[: non_land_target - len(selections)]:
             selections.append((classify(c), c))
             taken.add(c.oracle_id)
 
     commander = _load_commander_as_candidate(conn, commander_oracle_id)
-    basic_lands = _allocate_basics(
-        sorted(commander.color_identity), basics_needed
+
+    # Stage 3: mana base. Reserves basics, then fills utility from the
+    # remaining lands in the candidate pool.
+    non_land_cards = [c for _, c in selections]
+    candidate_lands = [
+        c for c in by_role.get(Role.LAND, [])
+        if c.oracle_id not in taken
+    ]
+    utility_lands, basic_lands = build_mana_base(
+        commander_ci=sorted(commander.color_identity),
+        candidate_lands=candidate_lands,
+        non_land_cards=non_land_cards,
+        total_land_count=budget.lands,
     )
+    for c in utility_lands:
+        selections.append((Role.LAND, c))
+        taken.add(c.oracle_id)
 
     meta = {
         "pool_meta": pool_meta,
