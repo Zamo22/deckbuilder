@@ -1,0 +1,12 @@
+[
+  {"name": "Atraxa, Praetors' Voice",     "slug": "atraxa-praetors-voice",     "tier": "top"},
+  {"name": "Edgar Markov",                 "slug": "edgar-markov",              "tier": "top"},
+  {"name": "Korvold, Fae-Cursed King",     "slug": "korvold-fae-cursed-king",   "tier": "top"},
+  {"name": "Krenko, Mob Boss",             "slug": "krenko-mob-boss",           "tier": "top"},
+  {"name": "Talrand, Sky Summoner",        "slug": "talrand-sky-summoner",      "tier": "top"},
+  {"name": "Omo, Queen of Vesuva",         "slug": "omo-queen-of-vesuva",       "tier": "mid"},
+  {"name": "Commodore Guff",               "slug": "commodore-guff",            "tier": "mid"},
+  {"name": "Y'shtola, Night's Blessed",    "slug": "yshtola-nights-blessed",    "tier": "mid"},
+  {"name": "The First Sliver",             "slug": "the-first-sliver",          "tier": "mid"},
+  {"name": "Light-Paws, Emperor's Voice",  "slug": "light-paws-emperors-voice", "tier": "mid"}
+]
