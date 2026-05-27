@@ -437,6 +437,7 @@ function ManaCurve({ deck }: { deck: Deck }) {
   }
   const max = Math.max(...buckets, 1);
   const avgCmc = nonLandCount > 0 ? cmcSum / nonLandCount : 0;
+  const BAR_MAX_PX = 52;
 
   return (
     <div>
@@ -446,30 +447,26 @@ function ManaCurve({ deck }: { deck: Deck }) {
         </p>
         <p className="text-xs text-zinc-500">avg CMC {avgCmc.toFixed(2)}</p>
       </div>
-      <div className="flex h-14 items-end gap-1.5">
+      <div className="flex items-end gap-2">
         {buckets.map((count, cmc) => (
           <div
             key={cmc}
-            className="flex flex-1 flex-col items-center justify-end"
+            className="flex flex-1 flex-col items-center"
             title={`${count} cards at CMC ${cmc === 6 ? "6+" : cmc}`}
           >
-            <span className="text-[10px] leading-tight text-zinc-500">
+            <span className="mb-0.5 h-3 text-[10px] leading-tight text-zinc-500">
               {count || ""}
             </span>
             <div
-              className="w-full rounded-t bg-blue-500/80 transition-all"
-              style={{ height: `${(count / max) * 100}%` }}
+              className="w-full rounded-t bg-blue-500/80"
+              style={{
+                height: `${(count / max) * BAR_MAX_PX}px`,
+                minHeight: count > 0 ? 2 : 0,
+              }}
             />
-          </div>
-        ))}
-      </div>
-      <div className="mt-1 flex gap-1.5">
-        {buckets.map((_, cmc) => (
-          <div
-            key={cmc}
-            className="flex-1 text-center text-[10px] text-zinc-500"
-          >
-            {cmc === 6 ? "6+" : cmc}
+            <span className="mt-1 text-[10px] text-zinc-500">
+              {cmc === 6 ? "6+" : cmc}
+            </span>
           </div>
         ))}
       </div>
