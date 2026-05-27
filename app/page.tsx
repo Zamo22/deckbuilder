@@ -690,11 +690,20 @@ function CopyDeckButton({ deck }: { deck: Deck }) {
 
 function CardRow({ card }: { card: Card }) {
   const [hovered, setHovered] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const rowRef = useRef<HTMLLIElement>(null);
   const [imagePosition, setImagePosition] = useState<"right" | "left">("right");
 
-  // Pick side at hover time based on available viewport space.
+  // True if the device supports real hover (i.e. mouse). On touch
+  // devices we switch to tap-to-open modal because absolute-positioned
+  // hover previews go off-screen on narrow viewports.
+  const [hasHover] = useState(() =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(hover: hover)").matches
+  );
+
   function handleEnter() {
+    if (!hasHover) return;
     setHovered(true);
     if (!rowRef.current || !card.image_uri) return;
     const rect = rowRef.current.getBoundingClientRect();
@@ -702,42 +711,100 @@ function CardRow({ card }: { card: Card }) {
     setImagePosition(spaceRight > 280 ? "right" : "left");
   }
 
+  function handleClick() {
+    if (hasHover || !card.image_uri) return;
+    setModalOpen(true);
+  }
+
   return (
-    <li
-      ref={rowRef}
-      onMouseEnter={handleEnter}
-      onMouseLeave={() => setHovered(false)}
-      className="relative flex items-baseline justify-between px-3 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-    >
-      <span className="flex-1 truncate pr-3">
-        {card.name}
-        {card.is_game_changer && (
-          <span className="ml-2 inline-block rounded bg-purple-100 px-1.5 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-300">
-            GC
+    <>
+      <li
+        ref={rowRef}
+        onMouseEnter={handleEnter}
+        onMouseLeave={() => setHovered(false)}
+        onClick={handleClick}
+        className={`relative flex items-baseline justify-between px-3 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800/50 ${
+          !hasHover && card.image_uri ? "cursor-pointer" : ""
+        }`}
+      >
+        <span className="flex-1 truncate pr-3">
+          {card.name}
+          {card.is_game_changer && (
+            <span className="ml-2 inline-block rounded bg-purple-100 px-1.5 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+              GC
+            </span>
+          )}
+          <ManaCost cost={card.mana_cost} />
+          {card.cmc > 0 && !card.mana_cost && (
+            <span className="ml-2 text-xs text-zinc-500">cmc {card.cmc}</span>
+          )}
+        </span>
+        {card.synergy_score !== null && (
+          <span className="ml-3 shrink-0 font-mono text-xs text-zinc-500">
+            syn {card.synergy_score >= 0 ? "+" : ""}
+            {card.synergy_score.toFixed(2)} ·{" "}
+            {((card.inclusion_count / card.potential_decks) * 100).toFixed(0)}%
           </span>
         )}
-        <ManaCost cost={card.mana_cost} />
-        {card.cmc > 0 && !card.mana_cost && (
-          <span className="ml-2 text-xs text-zinc-500">cmc {card.cmc}</span>
+        {hovered && card.image_uri && (
+          <img
+            src={card.image_uri}
+            alt={card.name}
+            loading="lazy"
+            className={`pointer-events-none absolute top-0 z-50 w-64 rounded-xl shadow-2xl ring-1 ring-black/10 ${
+              imagePosition === "right" ? "left-full ml-2" : "right-full mr-2"
+            }`}
+          />
         )}
-      </span>
-      {card.synergy_score !== null && (
-        <span className="ml-3 shrink-0 font-mono text-xs text-zinc-500">
-          syn {card.synergy_score >= 0 ? "+" : ""}
-          {card.synergy_score.toFixed(2)} ·{" "}
-          {((card.inclusion_count / card.potential_decks) * 100).toFixed(0)}%
-        </span>
-      )}
-      {hovered && card.image_uri && (
-        <img
+      </li>
+      {modalOpen && card.image_uri && (
+        <CardImageModal
           src={card.image_uri}
           alt={card.name}
-          loading="lazy"
-          className={`pointer-events-none absolute top-0 z-50 w-64 rounded-xl shadow-2xl ring-1 ring-black/10 ${
-            imagePosition === "right" ? "left-full ml-2" : "right-full mr-2"
-          }`}
+          onClose={() => setModalOpen(false)}
         />
       )}
-    </li>
+    </>
+  );
+}
+
+function CardImageModal({
+  src,
+  alt,
+  onClose,
+}: {
+  src: string;
+  alt: string;
+  onClose: () => void;
+}) {
+  // Close on Escape; lock body scroll while modal is open.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={alt}
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+    >
+      <img
+        src={src}
+        alt={alt}
+        onClick={(e) => e.stopPropagation()}
+        className="max-h-full max-w-full rounded-2xl shadow-2xl"
+      />
+    </div>
   );
 }
