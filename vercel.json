@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/main" }
+  ],
+  "functions": {
+    "api/main.py": {
+      "includeFiles": "{engine/**,ingest/commanders.json,data/cards.db}"
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "_comment": "Combo packages: if any 'trigger' card is in the candidate pool, ensure at least one 'partner' card gets prioritized in slot filling. By default partners are 'any' (one is enough); set 'require_all': true when the combo genuinely needs every partner (e.g. three-card storm setups). Maintain by hand based on Commander format knowledge — engine has no way to derive these from EDHREC data.",
+
+  "thoracle-combo": {
+    "triggers": ["Thassa's Oracle", "Jace, Wielder of Mysteries"],
+    "partners": ["Demonic Consultation", "Tainted Pact"],
+    "description": "Thoracle wincon — Oracle ETB while library is empty"
+  },
+
+  "heliod-ballista": {
+    "triggers": ["Heliod, Sun-Crowned"],
+    "partners": ["Walking Ballista", "Triskelion"],
+    "description": "Infinite damage via lifelink + counters"
+  },
+
+  "kiki-blink": {
+    "triggers": ["Kiki-Jiki, Mirror Breaker", "Splinter Twin"],
+    "partners": ["Felidar Guardian", "Restoration Angel", "Zealous Conscripts", "Pestermite", "Deceiver Exarch"],
+    "description": "Infinite tokens via ETB-tap-untap"
+  },
+
+  "worldgorger": {
+    "triggers": ["Worldgorger Dragon"],
+    "partners": ["Animate Dead", "Necromancy", "Dance of the Dead"],
+    "description": "Worldgorger reanimator loop"
+  },
+
+  "mikaeus-trike": {
+    "triggers": ["Mikaeus, the Unhallowed"],
+    "partners": ["Triskelion", "Walking Ballista"],
+    "description": "Undying + sac outlet kills the table"
+  },
+
+  "isochron-reversal": {
+    "triggers": ["Isochron Scepter"],
+    "partners": ["Dramatic Reversal"],
+    "description": "Infinite mana with rocks + DR imprinted on Scepter"
+  },
+
+  "ad-nauseam": {
+    "triggers": ["Ad Nauseam"],
+    "partners": ["Angel's Grace", "Phyrexian Unlife"],
+    "description": "Ad Nauseam without dying needs life-protection"
+  },
+
+  "underworld-breach-storm": {
+    "triggers": ["Underworld Breach"],
+    "partners": ["Lion's Eye Diamond", "Brain Freeze"],
+    "require_all": true,
+    "description": "Storm wincon — Breach plus LED plus a mill payoff"
+  },
+
+  "food-chain": {
+    "triggers": ["Food Chain"],
+    "partners": ["Squee, the Immortal", "Eternal Scourge", "Misthollow Griffin"],
+    "description": "Infinite mana via Food Chain + exile-castable creature"
+  },
+
+  "necrotic-ooze-combo": {
+    "triggers": ["Necrotic Ooze"],
+    "partners": ["Devoted Druid", "Channeler Initiate"],
+    "description": "Necrotic Ooze inheriting Devoted Druid + ramp = infinite mana"
+  },
+
+  "demonic-consult-jace": {
+    "triggers": ["Demonic Consultation", "Tainted Pact"],
+    "partners": ["Thassa's Oracle", "Jace, Wielder of Mysteries", "Laboratory Maniac"],
+    "description": "Library-exile cards need a wincon to capitalise on empty library"
+  },
+
+  "kalamax-tap": {
+    "triggers": ["Glint-Horn Buccaneer", "Niv-Mizzet, Parun"],
+    "partners": ["Curiosity", "Ophidian Eye", "Tandem Lookout"],
+    "description": "Damage-on-cast plus draw-on-damage = loop until library is gone"
+  }
+}

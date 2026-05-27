@@ -1,5 +1,5 @@
 {
-  "_comment": "Manual role overrides for cards where text-pattern classification fails or is ambiguous. Keys are exact card names (case-sensitive). Maintain by running engine/build.py and editing this file when output groups a card incorrectly. Valid roles: land, ramp, draw, interaction, payoff.",
+  "_comment": "Manual role overrides for cards where text-pattern classification fails or is ambiguous. Keys are exact card names (case-sensitive). Maintain by running engine/build.py and editing this file when output groups a card incorrectly. Valid roles: land, ramp, draw, interaction, wincon, payoff.",
 
   "Smothering Tithe": "ramp",
   "Dockside Extortionist": "ramp",
@@ -44,5 +44,25 @@
   "Mystical Tutor": "payoff",
   "Enlightened Tutor": "payoff",
   "Worldly Tutor": "payoff",
-  "Diabolic Intent": "payoff"
+  "Diabolic Intent": "payoff",
+
+  "Craterhoof Behemoth": "wincon",
+  "Triumph of the Hordes": "wincon",
+  "Approach of the Second Sun": "wincon",
+  "Thassa's Oracle": "wincon",
+  "Insurrection": "wincon",
+  "Torment of Hailfire": "wincon",
+  "Exsanguinate": "wincon",
+  "Aetherflux Reservoir": "wincon",
+  "Walking Ballista": "wincon",
+  "Finale of Devastation": "wincon",
+  "Jin-Gitaxias, Core Augur": "wincon",
+  "Avenger of Zendikar": "wincon",
+  "Expropriate": "wincon",
+  "Rise of the Dark Realms": "wincon",
+  "Coalition Victory": "wincon",
+  "Mortal Combat": "wincon",
+  "Helix Pinnacle": "wincon",
+  "Felidar Sovereign": "wincon",
+  "Test of Endurance": "wincon"
 }

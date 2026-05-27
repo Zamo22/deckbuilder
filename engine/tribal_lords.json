@@ -1,0 +1,68 @@
+{
+  "_comment": "Cards whose effect is locked to a SPECIFIC creature type (lord effects, type-specific tribal payoffs). When a commander has a 'tribe' set in ingest/commanders.json, candidates from other tribes are excluded from the pool. Skip changelings, mass-tribal cards like Coat of Arms / Door of Destinies that work for any tribe. Add here when you see a wrong-tribe lord leak into a deck.",
+
+  "Galerider Sliver": "Sliver",
+  "Manaweft Sliver": "Sliver",
+  "Gemhide Sliver": "Sliver",
+  "Sliver Legion": "Sliver",
+  "Sliver Hivelord": "Sliver",
+  "Crystalline Sliver": "Sliver",
+  "Harmonic Sliver": "Sliver",
+  "Bonescythe Sliver": "Sliver",
+  "Sentinel Sliver": "Sliver",
+  "Syphon Sliver": "Sliver",
+  "Cloudshredder Sliver": "Sliver",
+  "Shifting Sliver": "Sliver",
+  "Diffusion Sliver": "Sliver",
+  "Venom Sliver": "Sliver",
+  "Spiteful Sliver": "Sliver",
+  "Striking Sliver": "Sliver",
+  "Quick Sliver": "Sliver",
+
+  "Feline Sovereign": "Cat",
+  "Pride Sovereign": "Cat",
+  "Regal Caracal": "Cat",
+  "Brimaz, King of Oreskos": "Cat",
+
+  "Master of the Pearl Trident": "Merfolk",
+  "Lord of Atlantis": "Merfolk",
+  "Master of Waves": "Merfolk",
+  "Coralhelm Commander": "Merfolk",
+  "Merrow Reejerey": "Merfolk",
+  "Kira, Great Glass-Spinner": "Merfolk",
+
+  "Goblin King": "Goblin",
+  "Goblin Chieftain": "Goblin",
+  "Goblin Warchief": "Goblin",
+  "Goblin Matron": "Goblin",
+  "Goblin Recruiter": "Goblin",
+  "Pashalik Mons": "Goblin",
+  "Krenko, Tin Street Kingpin": "Goblin",
+  "Skirk Prospector": "Goblin",
+
+  "Lord of the Undead": "Zombie",
+  "Cemetery Reaper": "Zombie",
+  "Death Baron": "Zombie",
+  "Lord of the Accursed": "Zombie",
+  "Diregraf Captain": "Zombie",
+
+  "Stromkirk Captain": "Vampire",
+  "Bloodlord of Vaasgoth": "Vampire",
+  "Sangromancer": "Vampire",
+  "Drana, Liberator of Malakir": "Vampire",
+  "Captivating Vampire": "Vampire",
+
+  "Elvish Archdruid": "Elf",
+  "Elvish Champion": "Elf",
+  "Lys Alana Huntmaster": "Elf",
+  "Priest of Titania": "Elf",
+  "Elvish Promenade": "Elf",
+  "Imperious Perfect": "Elf",
+
+  "Lord of the Unreal": "Illusion",
+  "Adeliz, the Cinder Wind": "Wizard",
+  "Riptide Laboratory": "Wizard",
+
+  "Sephara, Sky's Blade": "Angel",
+  "Lyra Dawnbringer": "Angel"
+}

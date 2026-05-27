@@ -7,9 +7,9 @@ Brackets are Wizards' May-2024 official Commander power tiers:
   4 — Optimized; all Game Changers, infinite combos, fast mana
   5 — cEDH (we don't target this in v0)
 
-Budgets sum to 99 (commander is the 100th card). The PAYOFF bucket
-absorbs anything that isn't ramp/draw/interaction/land — wincons,
-archetype synergy, utility, tutors.
+Budgets sum to 99 (commander is the 100th card). PAYOFF absorbs anything
+that isn't ramp/draw/interaction/wincon/land — archetype synergy, utility,
+tutors, protection.
 
 Adjust by editing this file. The build pipeline reads only these
 constants — no other code knows or cares about the numbers.
@@ -26,19 +26,28 @@ class SlotBudget:
     ramp: int
     draw: int
     interaction: int
+    wincon: int
     payoff: int
 
     def total(self) -> int:
-        return self.lands + self.ramp + self.draw + self.interaction + self.payoff
+        return (
+            self.lands
+            + self.ramp
+            + self.draw
+            + self.interaction
+            + self.wincon
+            + self.payoff
+        )
 
 
-# Higher brackets shift slots from PAYOFF to INTERACTION and RAMP
-# (more answers, faster mana). LAND count tightens as the curve sharpens.
+# Higher brackets shift slots toward INTERACTION, RAMP, and WINCON
+# (more answers, faster mana, dedicated finishers). LAND count tightens
+# as the curve sharpens.
 BRACKET_BUDGETS: dict[int, SlotBudget] = {
-    1: SlotBudget(lands=40, ramp=10, draw=8,  interaction=6,  payoff=35),
-    2: SlotBudget(lands=38, ramp=10, draw=10, interaction=8,  payoff=33),
-    3: SlotBudget(lands=37, ramp=10, draw=10, interaction=10, payoff=32),
-    4: SlotBudget(lands=36, ramp=11, draw=10, interaction=12, payoff=30),
+    1: SlotBudget(lands=40, ramp=10, draw=8,  interaction=6,  wincon=2, payoff=33),
+    2: SlotBudget(lands=38, ramp=10, draw=10, interaction=8,  wincon=3, payoff=30),
+    3: SlotBudget(lands=37, ramp=10, draw=10, interaction=10, wincon=3, payoff=29),
+    4: SlotBudget(lands=36, ramp=11, draw=10, interaction=12, wincon=4, payoff=26),
 }
 
 # Game Changer cap (None = unlimited). See Wizards' bracket rules.
@@ -68,5 +77,6 @@ def role_to_budget_count(budget: SlotBudget, role: Role) -> int:
         Role.RAMP: budget.ramp,
         Role.DRAW: budget.draw,
         Role.INTERACTION: budget.interaction,
+        Role.WINCON: budget.wincon,
         Role.PAYOFF: budget.payoff,
     }[role]

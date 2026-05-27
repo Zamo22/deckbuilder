@@ -31,6 +31,7 @@ class Role(str, Enum):
     RAMP = "ramp"
     DRAW = "draw"
     INTERACTION = "interaction"
+    WINCON = "wincon"
     PAYOFF = "payoff"
 
 

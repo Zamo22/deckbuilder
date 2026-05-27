@@ -25,8 +25,26 @@ from pathlib import Path
 
 from .candidates import Candidate, DB_PATH, build_candidate_pool, resolve_commander
 from .manabase import build_mana_base
+from .packages import boost_required_in_role_lists, compute_required_cards
 from .roles import Role, classify
 from .slots import SlotBudget, get_budget, get_gc_cap, role_to_budget_count
+
+
+# Tribal filter data — loaded once on module import.
+_TRIBAL_LORDS_PATH = Path(__file__).parent / "tribal_lords.json"
+_COMMANDERS_CONFIG_PATH = (
+    Path(__file__).resolve().parent.parent / "ingest" / "commanders.json"
+)
+
+with open(_TRIBAL_LORDS_PATH) as _f:
+    _TRIBAL_LORDS: dict[str, str] = {
+        k: v for k, v in json.load(_f).items() if not k.startswith("_")
+    }
+
+with open(_COMMANDERS_CONFIG_PATH) as _f:
+    _COMMANDER_TRIBES: dict[str, str] = {
+        c["slug"]: c["tribe"] for c in json.load(_f) if c.get("tribe")
+    }
 
 
 @dataclass
@@ -51,7 +69,7 @@ def _load_commander_as_candidate(
     """Fetch the commander itself from cards table and wrap as a Candidate."""
     row = conn.execute(
         """SELECT oracle_id, name, type_line, mana_cost, cmc, color_identity,
-                  oracle_text, produced_mana
+                  oracle_text, produced_mana, image_uri
            FROM cards WHERE oracle_id = ?""",
         (oracle_id,),
     ).fetchone()
@@ -66,6 +84,7 @@ def _load_commander_as_candidate(
         color_identity=json.loads(row["color_identity"]),
         oracle_text=row["oracle_text"],
         produced_mana=json.loads(row["produced_mana"]) if row["produced_mana"] else None,
+        image_uri=row["image_uri"],
         synergy_score=None,
         inclusion_count=0,
         potential_decks=0,
@@ -74,6 +93,27 @@ def _load_commander_as_candidate(
         source="commander",
         score=0.0,
     )
+
+
+def _apply_tribal_filter(
+    pool: list[Candidate], commander_tribe: str | None
+) -> tuple[list[Candidate], int]:
+    """Drop tribal-lord cards from other tribes when commander has a tribe.
+
+    Pass-through when commander_tribe is None — engine has no opinion
+    on tribal coherence for non-tribal commanders.
+    """
+    if not commander_tribe:
+        return pool, 0
+    kept: list[Candidate] = []
+    dropped = 0
+    for c in pool:
+        card_tribe = _TRIBAL_LORDS.get(c.name)
+        if card_tribe and card_tribe != commander_tribe:
+            dropped += 1
+            continue
+        kept.append(c)
+    return kept, dropped
 
 
 def _apply_gc_cap(
@@ -138,10 +178,28 @@ def build_deck(
         conn, commander_oracle_id, archetype
     )
 
+    # Look up commander's tribe (if any) from ingest/commanders.json.
+    cmdr_slug_row = conn.execute(
+        "SELECT edhrec_slug FROM commanders WHERE oracle_id = ?",
+        (commander_oracle_id,),
+    ).fetchone()
+    commander_tribe = (
+        _COMMANDER_TRIBES.get(cmdr_slug_row["edhrec_slug"])
+        if cmdr_slug_row else None
+    )
+
+    pool, tribal_dropped = _apply_tribal_filter(pool, commander_tribe)
+
     gc_cap = get_gc_cap(bracket)
     pool, gc_kept = _apply_gc_cap(pool, gc_cap)
 
+    # Package detection: identify combo partners that must be prioritised
+    # so naive top-N doesn't strand a wincon trigger with no payoff.
+    required_names, packages_detected = compute_required_cards(pool)
+
     by_role = _group_by_role(pool)
+    boost_required_in_role_lists(by_role, required_names)
+
     budget = get_budget(bracket)
     taken: set[str] = set()
     selections: list[tuple[Role, Candidate]] = []
@@ -150,7 +208,7 @@ def build_deck(
     # mana base so pip counting (in manabase) sees the actual deck.
     non_land_target = 99 - budget.lands
 
-    for role in (Role.RAMP, Role.DRAW, Role.INTERACTION):
+    for role in (Role.RAMP, Role.DRAW, Role.INTERACTION, Role.WINCON):
         target = role_to_budget_count(budget, role)
         picks = _take_top_n(by_role.get(role, []), target, taken)
         for c in picks:
@@ -194,10 +252,25 @@ def build_deck(
         selections.append((Role.LAND, c))
         taken.add(c.oracle_id)
 
+    selected_names = {c.name for _, c in selections}
+    packages_in_deck = [
+        {
+            "name": p.package_name,
+            "triggers": p.triggers_present,
+            "partners_in_deck": [
+                n for n in p.required_partners if n in selected_names
+            ],
+        }
+        for p in packages_detected
+    ]
+
     meta = {
         "pool_meta": pool_meta,
         "gc_cap": gc_cap,
         "gc_kept": gc_kept,
+        "packages": packages_in_deck,
+        "tribe": commander_tribe,
+        "tribal_dropped": tribal_dropped,
         "role_counts": {
             role.value: sum(1 for r, _ in selections if r == role)
             for role in Role

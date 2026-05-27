@@ -49,6 +49,7 @@ class Candidate:
     color_identity: list[str]
     oracle_text: str | None
     produced_mana: list[str] | None
+    image_uri: str | None
     synergy_score: float | None
     inclusion_count: int
     potential_decks: int
@@ -83,6 +84,7 @@ def _row_to_candidate(row: sqlite3.Row, source: str) -> Candidate:
         color_identity=json.loads(row["color_identity"]),
         oracle_text=row["oracle_text"],
         produced_mana=json.loads(produced) if produced else None,
+        image_uri=row["image_uri"],
         synergy_score=row["synergy_score"],
         inclusion_count=inclusion,
         potential_decks=potential,
@@ -106,7 +108,7 @@ def _fetch_commander_pool(
         """
         SELECT
             c.oracle_id, c.name, c.type_line, c.mana_cost, c.cmc,
-            c.color_identity, c.oracle_text, c.produced_mana,
+            c.color_identity, c.oracle_text, c.produced_mana, c.image_uri,
             cc.synergy_score, cc.inclusion_count, cc.potential_decks,
             cc.is_game_changer, cc.is_high_synergy
         FROM commander_cards cc
@@ -135,7 +137,7 @@ def _fetch_theme_pool(
         """
         SELECT
             c.oracle_id, c.name, c.type_line, c.mana_cost, c.cmc,
-            c.color_identity, c.oracle_text, c.produced_mana,
+            c.color_identity, c.oracle_text, c.produced_mana, c.image_uri,
             tc.synergy_score, tc.inclusion_count, tc.potential_decks,
             tc.is_game_changer, tc.is_high_synergy
         FROM theme_cards tc
